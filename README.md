@@ -1,36 +1,164 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Habit Tracker MVP
+
+A beautiful, calming habit-tracking web application built with Next.js, TypeScript, Prisma, and SQLite.
+
+## Features
+
+- ✨ **Create & Track Habits**: Choose from presets or create custom habits (measurable or yes/no)
+- 📊 **Daily Logging**: Log progress for today with automatic aggregation for multiple entries
+- 🔥 **Streaks**: Track consecutive days of completion
+- 📅 **Calendar View**: Visualize your progress over the last 30 days
+- 📈 **Analytics**: View completion rates, totals, and averages for each habit
+- 🎯 **Smart Restrictions**: 
+  - No backfilling - only log for today
+  - 24-hour edit window for logs
+  - One aggregated log per habit per day
+
+## Tech Stack
+
+- **Frontend**: Next.js 16 with React & TypeScript
+- **Styling**: Tailwind CSS v4 with custom soft color palette
+- **Backend**: Next.js API routes
+- **Database**: SQLite with Prisma ORM
+- **State Management**: React hooks
 
 ## Getting Started
 
-First, run the development server:
+### Prerequisites
+
+- Node.js 18+ and npm
+
+### Installation
+
+1. **Navigate to the project directory**:
+   ```bash
+   cd habit-tracker
+   ```
+
+2. **Install dependencies**:
+   ```bash
+   npm install
+   ```
+
+3. **Initialize the database** (already done, but if you need to reset):
+   ```bash
+   npx prisma migrate reset
+   npx prisma migrate dev --name init
+   ```
+
+4. **Generate Prisma Client**:
+   ```bash
+   npx prisma generate
+   ```
+
+### Running the App
+
+Start the development server:
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000) in your browser.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Project Structure
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```
+habit-tracker/
+├── app/
+│   ├── api/              # API routes
+│   │   ├── habits/       # Habit CRUD endpoints
+│   │   ├── logs/         # Log CRUD endpoints
+│   │   └── analytics/    # Analytics endpoints
+│   ├── habit/[id]/       # Habit detail page
+│   ├── analytics/        # Analytics overview page
+│   ├── page.tsx          # Main dashboard
+│   ├── layout.tsx        # Root layout
+│   └── globals.css       # Global styles with custom theme
+├── components/           # React components
+│   ├── HabitCard.tsx     # Habit card with logging
+│   ├── Calendar.tsx      # 30-day calendar view
+│   └── AddHabitModal.tsx # Modal for adding habits
+├── lib/
+│   ├── prisma.ts         # Prisma client singleton
+│   ├── types.ts          # TypeScript types & preset habits
+│   └── utils.ts          # Utility functions (dates, streaks)
+├── prisma/
+│   ├── schema.prisma     # Database schema
+│   └── dev.db            # SQLite database
+└── README.md
+```
 
-## Learn More
+## Key Implementation Details
 
-To learn more about Next.js, take a look at the following resources:
+### 24-Hour Edit Restriction
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Logs can only be edited or deleted within 24 hours of creation. This is enforced in:
+- `/lib/utils.ts` - `canEditLog()` function
+- API routes check this before allowing updates/deletes
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+### Daily Aggregation
 
-## Deploy on Vercel
+Multiple logs for the same habit on the same day are aggregated:
+- For measurable habits: values are summed
+- For boolean habits: latest value is kept
+- Implemented via Prisma's `upsert` logic in `/api/logs/route.ts`
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+### No Backfilling
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Users can only create logs for today's date:
+- Enforced in `POST /api/logs` endpoint
+- Frontend only shows today's logging interface
+
+### Streak Calculation
+
+Streaks are calculated on-the-fly:
+- Counts consecutive days from today backwards
+- Allows for "grace day" (if today not logged yet, starts from yesterday)
+- Implementation in `/lib/utils.ts` - `calculateStreak()`
+
+### Global Streak
+
+Represents "days with at least one habit completed" - more encouraging for MVP users.
+
+## Database Schema
+
+### User
+- Single default user for MVP (no auth)
+
+### Habit
+- `id`, `name`, `type` (MEASURABLE | BOOLEAN)
+- `unit` (for measurable habits)
+- `userId` (foreign key)
+
+### HabitLog
+- `id`, `habitId`, `date` (YYYY-MM-DD)
+- `numericValue` (for measurable)
+- `booleanValue` (for boolean)
+- `createdAt`, `updatedAt`
+- Unique constraint on `(habitId, date)`
+
+## Future Enhancements (Phase 2)
+
+- Weekly/custom frequency habits
+- Reminders & notifications
+- Social features (sharing streaks)
+- Advanced analytics & comparisons
+- User authentication
+- Mobile app
+
+## Design Philosophy
+
+The UI uses a soft, calming color palette:
+- **Primary**: Soft teal/mint (#4fd1c5)
+- **Secondary**: Warm coral/peach (#fc8181)
+- **Success**: Gentle green (#68d391)
+- **Background**: Light off-white (#fafbfc)
+
+Encouraging microcopy throughout:
+- "One small step is still progress."
+- "You showed up today. That counts."
+
+## License
+
+MIT

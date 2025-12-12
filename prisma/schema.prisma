@@ -1,0 +1,50 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model User {
+  id        String   @id @default(cuid())
+  name      String   @default("User")
+  createdAt DateTime @default(now())
+  habits    Habit[]
+}
+
+model Habit {
+  id            String      @id @default(cuid())
+  name          String
+  description   String?
+  type          String      // "MEASURABLE" or "BOOLEAN"
+  unit          String?     // e.g., "minutes", "km", "glasses", null for boolean
+  target        Float?      // Daily target for measurable habits
+  frequency     String      @default("daily") // "daily" or "custom"
+  daysPerWeek   Int         @default(7)
+  icon          String?     // Emoji or icon name
+  color         String      @default("#4fd1c5") // Hex color
+  userId        String
+  user          User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  logs          HabitLog[]
+  createdAt     DateTime    @default(now())
+  archived      Boolean     @default(false)
+}
+
+model HabitLog {
+  id            String   @id @default(cuid())
+  habitId       String
+  habit         Habit    @relation(fields: [habitId], references: [id], onDelete: Cascade)
+  date          String   // Store as YYYY-MM-DD for easy querying
+  numericValue  Float?   // For measurable habits
+  booleanValue  Boolean? // For boolean habits
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@unique([habitId, date]) // One log per habit per day
+  @@index([habitId, date])
+}
