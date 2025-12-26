@@ -42,8 +42,49 @@ export const HabitDetailScreen: React.FC<HabitDetailScreenProps> = ({ habit, onB
 
     const today = new Date();
 
+
+    // Calculate success rates
+    const calculateRate = (days: number) => {
+        let completedCount = 0;
+        const now = new Date();
+        // Reset to end of day to include today
+        now.setHours(23, 59, 59, 999);
+
+        for (let i = 0; i < days; i++) {
+            const d = new Date(now);
+            d.setDate(d.getDate() - i);
+            const dateKey = d.toISOString().split('T')[0];
+            const val = habit.completions[dateKey];
+
+            if (habit.measurable) {
+                if (typeof val === 'number' && val >= (habit.target || 0)) {
+                    completedCount++;
+                }
+            } else {
+                if (val === true) {
+                    completedCount++;
+                }
+            }
+        }
+
+        // Calculate expected completions based on frequency
+        let expectedCount = days;
+        if (habit.frequency === 'custom' && habit.daysPerWeek) {
+            // Pro-rate the expected days based on the window size
+            // e.g. 3 days/week over 7 days = 3
+            // e.g. 3 days/week over 30 days = (3/7) * 30 ~= 12.8
+            expectedCount = (habit.daysPerWeek / 7) * days;
+        }
+
+        // Avoid division by zero
+        if (expectedCount === 0) return 0;
+
+        // Cap at 100%
+        return Math.min(Math.round((completedCount / expectedCount) * 100), 100);
+    };
+
     return (
-        <div className="min-h-screen bg-gray-50 pb-24">
+        <div className="min-h-screen bg-gray-50 pb-24 max-w-lg mx-auto shadow-2xl overflow-x-hidden relative">
             <div className="bg-white px-6 pt-6 pb-4 sticky top-0 z-10 shadow-sm">
                 {/* ... header ... */}
                 <div className="flex items-center gap-4">
@@ -184,12 +225,12 @@ export const HabitDetailScreen: React.FC<HabitDetailScreenProps> = ({ habit, onB
 
                 <div className="grid grid-cols-2 gap-4">
                     <div className="bg-white rounded-3xl p-5 shadow-sm text-center">
-                        <p className="text-3xl font-bold text-lime-500 mb-1">100%</p>
-                        <p className="text-sm text-gray-600">7-Day Rate</p>
+                        <p className="text-3xl font-bold text-lime-500 mb-1">{calculateRate(7)}%</p>
+                        <p className="text-sm text-gray-600">Last 7 Days</p>
                     </div>
                     <div className="bg-white rounded-3xl p-5 shadow-sm text-center">
-                        <p className="text-3xl font-bold" style={{ color: habit.color }}>85%</p>
-                        <p className="text-sm text-gray-600">30-Day Rate</p>
+                        <p className="text-3xl font-bold" style={{ color: habit.color }}>{calculateRate(30)}%</p>
+                        <p className="text-sm text-gray-600">Last 30 Days</p>
                     </div>
                 </div>
             </div>

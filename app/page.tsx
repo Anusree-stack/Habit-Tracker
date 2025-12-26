@@ -338,8 +338,8 @@ export default function Home() {
 
       {screen === 'create' && (
         <CreateHabitScreen
-          onSave={handleCreateHabit}
-          onCancel={() => {
+          onCreate={handleCreateHabit}
+          onBack={() => {
             setScreen('today');
             setEditingHabit(null);
           }}

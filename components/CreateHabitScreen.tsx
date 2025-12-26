@@ -67,7 +67,7 @@ export const CreateHabitScreen: React.FC<CreateHabitScreenProps> = ({ onBack, on
     };
 
     return (
-        <div className="min-h-screen bg-gray-50 pb-24">
+        <div className="min-h-screen bg-gray-50 pb-24 max-w-lg mx-auto shadow-2xl overflow-x-hidden relative">
             <div className="bg-white px-6 pt-6 pb-4 sticky top-0 z-10 shadow-sm">
                 <div className="flex items-center gap-4">
                     <button onClick={onBack} className="p-2 hover:bg-gray-100 rounded-full transition-colors cursor-pointer">
@@ -229,7 +229,7 @@ export const CreateHabitScreen: React.FC<CreateHabitScreenProps> = ({ onBack, on
                     onClick={handleSubmit}
                     className="w-full bg-lime-400 text-gray-900 py-4 rounded-full font-semibold text-lg hover:bg-lime-500 transition-colors shadow-sm cursor-pointer"
                 >
-                    Create Habit
+                    {initialData ? 'Update Habit' : 'Create Habit'}
                 </button>
             </div>
         </div>
