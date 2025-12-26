@@ -1,10 +1,17 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { canEditLog, getToday } from '@/lib/utils';
+import { getAuthenticatedUser } from '@/lib/auth-helpers';
 
 // GET /api/logs?habitId=xxx&startDate=xxx&endDate=xxx
-export async function GET(request: Request) {
+export async function GET(request: NextRequest) {
     try {
+        const user = await getAuthenticatedUser(request);
+
+        if (!user) {
+            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        }
+
         const { searchParams } = new URL(request.url);
         const habitId = searchParams.get('habitId');
         const startDate = searchParams.get('startDate');
@@ -13,6 +20,15 @@ export async function GET(request: Request) {
         const where: any = {};
 
         if (habitId) {
+            // Verify habit belongs to user
+            const habit = await prisma.habit.findFirst({
+                where: { id: habitId, userId: user.id },
+            });
+
+            if (!habit) {
+                return NextResponse.json({ error: 'Habit not found' }, { status: 404 });
+            }
+
             where.habitId = habitId;
         }
 
@@ -36,8 +52,14 @@ export async function GET(request: Request) {
 }
 
 // POST /api/logs - Create or update a log
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
     try {
+        const user = await getAuthenticatedUser(request);
+
+        if (!user) {
+            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        }
+
         const body = await request.json();
         const { habitId, date, numericValue, booleanValue } = body;
 
@@ -45,9 +67,9 @@ export async function POST(request: Request) {
             return NextResponse.json({ error: 'habitId and date are required' }, { status: 400 });
         }
 
-        // Get the habit to check its type
-        const habit = await prisma.habit.findUnique({
-            where: { id: habitId },
+        // Get the habit to check its type AND verify ownership
+        const habit = await prisma.habit.findFirst({
+            where: { id: habitId, userId: user.id },
         });
 
         if (!habit) {

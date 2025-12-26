@@ -1,13 +1,29 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { getAuthenticatedUser } from '@/lib/auth-helpers';
 
 // DELETE /api/habits/[id] - Soft delete a habit
 export async function DELETE(
-    request: Request,
+    request: NextRequest,
     { params }: { params: Promise<{ id: string }> }
 ) {
     try {
+        const user = await getAuthenticatedUser(request);
+
+        if (!user) {
+            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        }
+
         const { id } = await params;
+
+        // Verify habit belongs to user
+        const habit = await prisma.habit.findFirst({
+            where: { id, userId: user.id },
+        });
+
+        if (!habit) {
+            return NextResponse.json({ error: 'Habit not found' }, { status: 404 });
+        }
 
         // Soft delete: set archived to true
         await prisma.habit.update({
@@ -24,11 +40,27 @@ export async function DELETE(
 
 // PUT /api/habits/[id] - Update a habit
 export async function PUT(
-    request: Request,
+    request: NextRequest,
     { params }: { params: Promise<{ id: string }> }
 ) {
     try {
+        const user = await getAuthenticatedUser(request);
+
+        if (!user) {
+            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        }
+
         const { id } = await params;
+
+        // Verify habit belongs to user
+        const existingHabit = await prisma.habit.findFirst({
+            where: { id, userId: user.id },
+        });
+
+        if (!existingHabit) {
+            return NextResponse.json({ error: 'Habit not found' }, { status: 404 });
+        }
+
         const body = await request.json();
 
         // Extract allowed fields

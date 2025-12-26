@@ -1,16 +1,14 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { getAuthenticatedUser } from '@/lib/auth-helpers';
 
-// GET /api/habits - Get all habits for the user
-export async function GET() {
+// GET /api/habits - Get all habits for the authenticated user
+export async function GET(request: NextRequest) {
     try {
-        // For MVP, we'll use a single default user
-        let user = await prisma.user.findFirst();
+        const user = await getAuthenticatedUser(request);
 
         if (!user) {
-            user = await prisma.user.create({
-                data: { name: 'User' },
-            });
+            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
         const habits = await prisma.habit.findMany({
@@ -30,8 +28,14 @@ export async function GET() {
 }
 
 // POST /api/habits - Create a new habit
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
     try {
+        const user = await getAuthenticatedUser(request);
+
+        if (!user) {
+            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        }
+
         const body = await request.json();
         const {
             name,
@@ -51,14 +55,6 @@ export async function POST(request: Request) {
 
         if (type !== 'MEASURABLE' && type !== 'BOOLEAN') {
             return NextResponse.json({ error: 'Type must be MEASURABLE or BOOLEAN' }, { status: 400 });
-        }
-
-        // Get or create default user
-        let user = await prisma.user.findFirst();
-        if (!user) {
-            user = await prisma.user.create({
-                data: { name: 'User' },
-            });
         }
 
         const habit = await prisma.habit.create({

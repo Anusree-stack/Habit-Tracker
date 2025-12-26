@@ -27,6 +27,8 @@ interface TodayDashboardProps {
     onLogHabit: (habitId: string) => void;
     onEditHabit: (habit: UIHabit) => void;
     onArchiveHabit: (habitId: string) => void;
+    onSignOut?: () => void;
+    currentUser?: { name: string; email: string };
 }
 
 export const TodayDashboard: React.FC<TodayDashboardProps> = ({
@@ -35,12 +37,15 @@ export const TodayDashboard: React.FC<TodayDashboardProps> = ({
     onAddHabit,
     onLogHabit,
     onEditHabit,
-    onArchiveHabit
+    onArchiveHabit,
+    onSignOut,
+    currentUser
 }) => {
     const weekDays = ['Wed', 'Thus', 'Fri', 'Sat', 'Sun'];
     const dates = [20, 21, 22, 23, 24]; // TODO: Dynamic dates
     const currentDate = 22; // TODO: Dynamic current date
     const [activeMenuHabitId, setActiveMenuHabitId] = React.useState<string | null>(null);
+    const [sidebarOpen, setSidebarOpen] = React.useState(false);
 
     // Format large numbers (e.g., 1000 -> 1k, 1500 -> 1.5k)
     const formatNumber = (num: number | boolean) => {
@@ -60,21 +65,25 @@ export const TodayDashboard: React.FC<TodayDashboardProps> = ({
                 {/* ... header content ... */}
                 <div className="flex items-center justify-between mb-6">
                     <div className="flex items-center gap-3">
-                        <img
-                            src="https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=200&h=200&fit=crop"
-                            alt="Profile"
-                            className="w-12 h-12 rounded-full object-cover"
-                        />
+                        <div className="w-12 h-12 rounded-full overflow-hidden flex items-center justify-center bg-lime-100 text-lime-700 font-bold text-lg border-2 border-white shadow-sm">
+                            {currentUser?.name?.charAt(0).toUpperCase() || 'U'}
+                        </div>
                         <div>
                             <p className="text-sm text-gray-500">Good morning,</p>
-                            <p className="font-semibold text-gray-900">Sara Anderson</p>
+                            <p className="font-semibold text-gray-900">{currentUser?.name || 'User'}</p>
                         </div>
                     </div>
                     <div className="flex items-center gap-2">
                         <button className="p-2 hover:bg-gray-100 rounded-full transition-colors cursor-pointer">
                             <Bell className="w-5 h-5 text-gray-600" />
                         </button>
-                        <button className="p-2 hover:bg-gray-100 rounded-full transition-colors cursor-pointer">
+                        <button
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                setSidebarOpen(true);
+                            }}
+                            className="p-2 hover:bg-gray-100 rounded-full transition-colors cursor-pointer"
+                        >
                             <Menu className="w-5 h-5 text-gray-600" />
                         </button>
                     </div>
@@ -255,6 +264,120 @@ export const TodayDashboard: React.FC<TodayDashboardProps> = ({
                     </button>
                 </div>
             </div>
+
+            {/* Sidebar */}
+            {sidebarOpen && (
+                <>
+                    {/* Overlay with glassmorphism to show the screen behind - removing the black bar strip */}
+                    <div
+                        className="fixed inset-0 bg-white/20 backdrop-blur-[2px] z-40 transition-all duration-300"
+                        onClick={() => setSidebarOpen(false)}
+                    />
+
+                    {/* Sidebar */}
+                    <div className="fixed top-0 right-0 h-full w-80 bg-white shadow-[-10px_0_30px_rgba(0,0,0,0.05)] z-50 flex flex-col animate-slide-in">
+                        {/* Header with Lime Gradient to match Goal Achieved color */}
+                        <div className="relative p-6 pb-12 bg-gradient-to-br from-lime-400 to-lime-500 overflow-hidden">
+                            <div className="absolute top-0 right-0 w-32 h-32 bg-white/20 rounded-full -mr-16 -mt-16 blur-2xl"></div>
+
+                            <button
+                                onClick={() => setSidebarOpen(false)}
+                                className="absolute top-4 right-4 p-2 hover:bg-black/10 rounded-full transition-all duration-200 z-10"
+                            >
+                                <X className="w-5 h-5 text-gray-800" />
+                            </button>
+
+                            <div className="relative z-10 mt-4">
+                                <h2 className="text-2xl font-bold text-gray-900 tracking-tight">Step Up</h2>
+                                <p className="text-gray-800 text-sm mt-1 opacity-70 font-medium tracking-wide">Build your best self</p>
+                            </div>
+                        </div>
+
+                        {/* User Info Card with Generic Avatar (removing creepy profile pic) */}
+                        {currentUser && (
+                            <div className="px-6 -mt-8 mb-8 relative z-20">
+                                <div className="bg-white rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] p-5 border border-gray-100/80 backdrop-blur-md">
+                                    <div className="flex items-center gap-4">
+                                        <div className="relative">
+                                            <div className="w-16 h-16 rounded-full flex items-center justify-center bg-lime-100 text-lime-700 font-bold text-2xl ring-4 ring-lime-50 border-2 border-white shadow-sm">
+                                                {currentUser.name.charAt(0).toUpperCase()}
+                                            </div>
+                                            <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-green-500 rounded-full border-2 border-white shadow-sm"></div>
+                                        </div>
+                                        <div className="flex-1 min-w-0">
+                                            <p className="font-bold text-gray-900 text-lg truncate leading-tight">{currentUser.name}</p>
+                                            <p className="text-[11px] text-gray-400 truncate mt-1.5 font-semibold uppercase tracking-wider">{currentUser.email}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Menu Items (Simplified: Only Dashboard and Analytics) */}
+                        <div className="flex-1 px-4 space-y-2 overflow-y-auto pt-2">
+                            <button
+                                onClick={() => {
+                                    onNavigate('today');
+                                    setSidebarOpen(false);
+                                }}
+                                className="w-full flex items-center gap-4 p-4 rounded-xl hover:bg-lime-50 transition-all duration-200 text-left group"
+                            >
+                                <div className="w-10 h-10 rounded-xl bg-lime-100 flex items-center justify-center group-hover:bg-lime-400 transition-all duration-300">
+                                    <Home className="w-5 h-5 text-lime-600 group-hover:text-gray-900 transition-colors" />
+                                </div>
+                                <div className="flex flex-col">
+                                    <span className="font-bold text-gray-700 group-hover:text-gray-900 transition-colors">Dashboard</span>
+                                    <span className="text-[10px] text-gray-400 font-medium">Your daily overview</span>
+                                </div>
+                            </button>
+
+                            <button
+                                onClick={() => {
+                                    onNavigate('progress');
+                                    setSidebarOpen(false);
+                                }}
+                                className="w-full flex items-center gap-4 p-4 rounded-xl hover:bg-lime-50 transition-all duration-200 text-left group"
+                            >
+                                <div className="w-10 h-10 rounded-xl bg-lime-100 flex items-center justify-center group-hover:bg-lime-400 transition-all duration-300">
+                                    <TrendingUp className="w-5 h-5 text-lime-600 group-hover:text-gray-900 transition-colors" />
+                                </div>
+                                <div className="flex flex-col">
+                                    <span className="font-bold text-gray-700 group-hover:text-gray-900 transition-colors">Analytics</span>
+                                    <span className="text-[10px] text-gray-400 font-medium">Track your progress</span>
+                                </div>
+                            </button>
+                        </div>
+
+                        {/* Sign Out Button - Modern Gradient */}
+                        {onSignOut && (
+                            <div className="p-6 bg-white border-t border-gray-100">
+                                <button
+                                    onClick={() => {
+                                        setSidebarOpen(false);
+                                        onSignOut();
+                                    }}
+                                    className="w-full bg-gray-900 text-white py-4 px-6 rounded-2xl font-bold hover:bg-black transition-all duration-300 shadow-lg transform hover:-translate-y-1 flex items-center justify-center gap-3 active:scale-95"
+                                >
+                                    <svg className="w-5 h-5 scale-x-[-1]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                                    </svg>
+                                    Sign Out
+                                </button>
+                            </div>
+                        )}
+                    </div>
+
+                    <style jsx>{`
+                        @keyframes slideIn {
+                            from { transform: translateX(100%); opacity: 0; }
+                            to { transform: translateX(0); opacity: 1; }
+                        }
+                        .animate-slide-in {
+                            animation: slideIn 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+                        }
+                    `}</style>
+                </>
+            )}
         </div>
     );
 };
