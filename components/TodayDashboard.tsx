@@ -55,7 +55,7 @@ export const TodayDashboard: React.FC<TodayDashboardProps> = ({
     };
 
     return (
-        <div className="min-h-screen bg-gray-50 pb-32" onClick={() => setActiveMenuHabitId(null)}>
+        <div className="min-h-screen bg-gray-50 pb-32 max-w-lg mx-auto shadow-2xl overflow-x-hidden relative" onClick={() => setActiveMenuHabitId(null)}>
             <div className="bg-white px-6 pt-12 pb-6">
                 {/* ... header content ... */}
                 <div className="flex items-center justify-between mb-6">
@@ -229,7 +229,7 @@ export const TodayDashboard: React.FC<TodayDashboardProps> = ({
                 </div>
             </div>
 
-            <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 px-6 pt-2 pb-6 safe-area-bottom">
+            <div className="fixed bottom-0 w-full max-w-lg left-1/2 transform -translate-x-1/2 bg-white border-t border-gray-100 px-6 pt-2 pb-6 safe-area-bottom z-50">
                 <div className="flex items-center justify-around relative">
                     <button
                         onClick={() => onNavigate('today')}

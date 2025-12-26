@@ -253,7 +253,7 @@ export const ProgressScreen: React.FC<ProgressScreenProps> = ({ habits, onNaviga
     };
 
     return (
-        <div className="min-h-screen bg-gray-50 pb-24">
+        <div className="min-h-screen bg-gray-50 pb-24 max-w-lg mx-auto shadow-2xl overflow-x-hidden relative">
             <div className="bg-white px-5 pt-8 pb-4 shadow-sm">
                 <div className="flex items-center justify-between mb-4">
                     <h1 className="text-xl font-bold text-gray-900">Progress</h1>
@@ -494,7 +494,7 @@ export const ProgressScreen: React.FC<ProgressScreenProps> = ({ habits, onNaviga
                 </div>
             </div>
 
-            <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 px-6 pt-2 pb-6">
+            <div className="fixed bottom-0 w-full max-w-lg left-1/2 transform -translate-x-1/2 bg-white border-t border-gray-100 px-6 pt-2 pb-6 z-50">
                 <div className="flex items-center justify-around relative">
                     <button
                         onClick={() => onNavigate('today')}
