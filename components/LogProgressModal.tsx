@@ -6,35 +6,16 @@ import type { UIHabit } from '../types/ui';
 
 interface LogProgressModalProps {
     habit: UIHabit;
-    onClose: () => void;
+    onCancel: () => void;
     onConfirm: (value: number) => void;
 }
 
-export const LogProgressModal: React.FC<LogProgressModalProps> = ({ habit, onClose, onConfirm }) => {
+export const LogProgressModal: React.FC<LogProgressModalProps> = ({ habit, onCancel, onConfirm }) => {
     const [value, setValue] = useState<string>('');
 
     const currentTotal = typeof habit.todayValue === 'number' ? habit.todayValue : 0;
     const target = habit.target || 0;
     const remaining = Math.max(0, target - currentTotal);
-
-    useEffect(() => {
-        // Pre-fill with remaining or empty? Empty might be better for "logging what I did now"
-        // User complaint: "adding progress 1 at a time will take hours". 
-        // This implies they want to add a specific amount they just did.
-        // However, the backend logic I changed earlier replaces the total.
-        // Wait, the user said "If I am adding 5.xxxx". 
-        // And "The added progress should never be more than the commited values".
-        // Does this mean total for the day, or single entry?
-        // "not be able to add 15-20, or even if added the max should be 8."
-        // This strongly implies the TOTAL for the day should not exceed target.
-        // My previous backend change SETS the value.
-        // If I want to support "Adding" chunks, I should calculate the new total here.
-
-        // Let's assume the user enters the amount they JUST did (e.g., drank 1 glass).
-        // Or they enter the new total?
-        // "adding custom values, instead of adding" sounds like "Add 5000 steps" to the existing count.
-        // Let's support "Add to existing" flow in UI, but calculate final total to send.
-    }, []);
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
@@ -47,7 +28,6 @@ export const LogProgressModal: React.FC<LogProgressModalProps> = ({ habit, onClo
 
         // Validation requirement: "added progress should never be more than the committed values"
         // Interpretation: The resulting TOTAL should not exceed target.
-        // "even if added the max should be 8"
 
         let newTotal = currentTotal + numVal;
 
@@ -57,7 +37,7 @@ export const LogProgressModal: React.FC<LogProgressModalProps> = ({ habit, onClo
         }
 
         onConfirm(newTotal);
-        onClose();
+        onCancel();
     };
 
     return (
@@ -65,7 +45,7 @@ export const LogProgressModal: React.FC<LogProgressModalProps> = ({ habit, onClo
             <div className="bg-white rounded-3xl p-6 w-full max-w-sm shadow-xl animate-scale-up">
                 <div className="flex justify-between items-center mb-4">
                     <h3 className="text-lg font-bold text-gray-900">Log Progress</h3>
-                    <button onClick={onClose} className="p-1 hover:bg-gray-100 rounded-full transition-colors cursor-pointer">
+                    <button onClick={onCancel} className="p-1 hover:bg-gray-100 rounded-full transition-colors cursor-pointer">
                         <X className="w-5 h-5 text-gray-500" />
                     </button>
                 </div>
