@@ -16,6 +16,7 @@ export async function GET() {
             },
             env: {
                 hasPostgresUrl: !!process.env.POSTGRES_PRISMA_URL,
+                hasDatabaseUrl: !!process.env.DATABASE_URL,
                 nodeEnv: process.env.NODE_ENV
             }
         });
@@ -27,6 +28,7 @@ export async function GET() {
             stack: error.stack,
             env: {
                 hasPostgresUrl: !!process.env.POSTGRES_PRISMA_URL,
+                hasDatabaseUrl: !!process.env.DATABASE_URL,
             }
         }, { status: 500 });
     }
